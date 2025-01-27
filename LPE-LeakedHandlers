@@ -1,0 +1,186 @@
+Leaked Handlers
+
+Imagine that a process running as SYSTEM open a new process (OpenProcess()) with full access. The same process also create a new process (CreateProcess()) with low privileges but inheriting all the open handles of the main process.
+Then, if you have full access to the low privileged process, you can grab the open handle to the privileged process created with OpenProcess() and inject a shellcode.
+Read this example for more information about how to detect and exploit this vulnerability.
+Read this other post for a more complete explanation on how to test and abuse more open handlers of processes and threads inherited with different levels of permissions (not only full access).
+Named Pipe Client Impersonation
+
+Shared memory segments, referred to as pipes, enable process communication and data transfer.
+
+Windows provides a feature called Named Pipes, allowing unrelated processes to share data, even over different networks. This resembles a client/server architecture, with roles defined as named pipe server and named pipe client.
+
+When data is sent through a pipe by a client, the server that set up the pipe has the ability to take on the identity of the client, assuming it has the necessary SeImpersonate rights. Identifying a privileged process that communicates via a pipe you can mimic provides an opportunity to gain higher privileges by adopting the identity of that process once it interacts with the pipe you established. For instructions on executing such an attack, helpful guides can be found here and here.
+
+Also the following tool allows to intercept a named pipe communication with a tool like burp: https://github.com/gabriel-sztejnworcel/pipe-intercept and this tool allows to list and see all the pipes to find privescs https://github.com/cyberark/PipeViewer
+Misc
+Monitoring Command Lines for passwords
+
+When getting a shell as a user, there may be scheduled tasks or other processes being executed which pass credentials on the command line. The script below captures process command lines every two seconds and compares the current state with the previous state, outputting any differences.
+powershell
+
+while($true)
+{
+  $process = Get-WmiObject Win32_Process | Select-Object CommandLine
+  Start-Sleep 1
+  $process2 = Get-WmiObject Win32_Process | Select-Object CommandLine
+  Compare-Object -ReferenceObject $process -DifferenceObject $process2
+}
+
+Stealing passwords from processes
+From Low Priv User to NT\AUTHORITY SYSTEM (CVE-2019-1388) / UAC Bypass
+
+If you have access to the graphical interface (via console or RDP) and UAC is enabled, in some versions of Microsoft Windows it's possible to run a terminal or any other process such as "NT\AUTHORITY SYSTEM" from an unprivileged user.
+
+This makes it possible to escalate privileges and bypass UAC at the same time with the same vulnerability. Additionally, there is no need to install anything and the binary used during the process, is signed and issued by Microsoft.
+
+Some of the affected systems are the following:
+
+SERVER
+======
+
+Windows 2008r2	7601	** link OPENED AS SYSTEM **
+Windows 2012r2	9600	** link OPENED AS SYSTEM **
+Windows 2016	14393	** link OPENED AS SYSTEM **
+Windows 2019	17763	link NOT opened
+
+
+WORKSTATION
+===========
+
+Windows 7 SP1	7601	** link OPENED AS SYSTEM **
+Windows 8		9200	** link OPENED AS SYSTEM **
+Windows 8.1		9600	** link OPENED AS SYSTEM **
+Windows 10 1511	10240	** link OPENED AS SYSTEM **
+Windows 10 1607	14393	** link OPENED AS SYSTEM **
+Windows 10 1703	15063	link NOT opened
+Windows 10 1709	16299	link NOT opened
+
+To exploit this vulnerability, it's necessary to perform the following steps:
+
+1) Right click on the HHUPD.EXE file and run it as Administrator.
+
+2) When the UAC prompt appears, select "Show more details".
+
+3) Click "Show publisher certificate information".
+
+4) If the system is vulnerable, when clicking on the "Issued by" URL link, the default web browser may appear.
+
+5) Wait for the site to load completely and select "Save as" to bring up an explorer.exe window.
+
+6) In the address path of the explorer window, enter cmd.exe, powershell.exe or any other interactive process.
+
+7) You now will have an "NT\AUTHORITY SYSTEM" command prompt.
+
+8) Remember to cancel setup and the UAC prompt to return to your desktop.
+
+You have all the necessary files and information in the following GitHub repository:
+
+https://github.com/jas502n/CVE-2019-1388
+From Administrator Medium to High Integrity Level / UAC Bypass
+
+Read this to learn about Integrity Levels:
+
+Integrity Levels
+
+Then read this to learn about UAC and UAC bypasses:
+
+UAC - User Account Control
+From High Integrity to System
+New service
+
+If you are already running on a High Integrity process, the pass to SYSTEM can be easy just creating and executing a new service:
+
+sc create newservicename binPath= "C:\windows\system32\notepad.exe"
+sc start newservicename
+
+AlwaysInstallElevated
+
+From a High Integrity process you could try to enable the AlwaysInstallElevated registry entries and install a reverse shell using a .msi wrapper.
+More information about the registry keys involved and how to install a .msi package here.
+High + SeImpersonate privilege to System
+
+You can find the code here.
+From SeDebug + SeImpersonate to Full Token privileges
+
+If you have those token privileges (probably you will find this in an already High Integrity process), you will be able to open almost any process (not protected processes) with the SeDebug privilege, copy the token of the process, and create an arbitrary process with that token.
+Using this technique is usually selected any process running as SYSTEM with all the token privileges (yes, you can find SYSTEM processes without all the token privileges).
+You can find an example of code executing the proposed technique here.
+Named Pipes
+
+This technique is used by meterpreter to escalate in getsystem. The technique consists on creating a pipe and then create/abuse a service to write on that pipe. Then, the server that created the pipe using the SeImpersonate privilege will be able to impersonate the token of the pipe client (the service) obtaining SYSTEM privileges.
+If you want to learn more about name pipes you should read this.
+If you want to read an example of how to go from high integrity to System using name pipes you should read this.
+Dll Hijacking
+
+If you manages to hijack a dll being loaded by a process running as SYSTEM you will be able to execute arbitrary code with those permissions. Therefore Dll Hijacking is also useful to this kind of privilege escalation, and, moreover, if far more easy to achieve from a high integrity process as it will have write permissions on the folders used to load dlls.
+You can learn more about Dll hijacking here.
+From Administrator or Network Service to System
+
+GitHub - sailay1996/RpcSsImpersonator: Privilege Escalation Via RpcSs svc
+From LOCAL SERVICE or NETWORK SERVICE to full privs
+
+Read: https://github.com/itm4n/FullPowers
+More help
+
+Static impacket binaries
+Useful tools
+
+Best tool to look for Windows local privilege escalation vectors: WinPEAS
+
+PS
+
+PrivescCheck
+PowerSploit-Privesc(PowerUP) -- Check for misconfigurations and sensitive files (check here). Detected.
+JAWS -- Check for some possible misconfigurations and gather info (check here).
+privesc -- Check for misconfigurations
+SessionGopher -- It extracts PuTTY, WinSCP, SuperPuTTY, FileZilla, and RDP saved session information. Use -Thorough in local.
+Invoke-WCMDump -- Extracts crendentials from Credential Manager. Detected.
+DomainPasswordSpray -- Spray gathered passwords across domain
+Inveigh -- Inveigh is a PowerShell ADIDNS/LLMNR/mDNS/NBNS spoofer and man-in-the-middle tool.
+WindowsEnum -- Basic privesc Windows enumeration
+Sherlock ~~~~ -- Search for known privesc vulnerabilities (DEPRECATED for Watson)
+WINspect -- Local checks (Need Admin rights)
+
+Exe
+
+Watson -- Search for known privesc vulnerabilities (needs to be compiled using VisualStudio) (precompiled)
+SeatBelt -- Enumerates the host searching for misconfigurations (more a gather info tool than privesc) (needs to be compiled) (precompiled)
+LaZagne -- Extracts credentials from lots of softwares (precompiled exe in github)
+SharpUP -- Port of PowerUp to C#
+Beroot ~~~~ -- Check for misconfiguration (executable precompiled in github). Not recommended. It does not work well in Win10.
+Windows-Privesc-Check -- Check for possible misconfigurations (exe from python). Not recommended. It does not work well in Win10.
+
+Bat
+
+winPEASbat -- Tool created based in this post (it does not need accesschk to work properly but it can use it).
+
+Local
+
+Windows-Exploit-Suggester -- Reads the output of systeminfo and recommends working exploits (local python)
+Windows Exploit Suggester Next Generation -- Reads the output of systeminfo andrecommends working exploits (local python)
+
+Meterpreter
+
+multi/recon/local_exploit_suggestor
+
+You have to compile the project using the correct version of .NET (see this). To see the installed version of .NET on the victim host you can do:
+
+C:\Windows\microsoft.net\framework\v4.0.30319\MSBuild.exe -version #Compile the code with the version given in "Build Engine version" line
+
+References
+
+    http://www.fuzzysecurity.com/tutorials/16.html
+    http://www.greyhathacker.net/?p=738
+    http://it-ovid.blogspot.com/2012/02/windows-privilege-escalation.html
+    https://github.com/sagishahar/lpeworkshop
+    https://www.youtube.com/watch?v=_8xJaaQlpBo
+    https://sushant747.gitbooks.io/total-oscp-guide/privilege_escalation_windows.html
+    https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Windows%20-%20Privilege%20Escalation.md
+    https://www.absolomb.com/2018-01-26-Windows-Privilege-Escalation-Guide/
+    https://github.com/netbiosX/Checklists/blob/master/Windows-Privilege-Escalation.md
+    https://github.com/frizb/Windows-Privilege-Escalation
+    https://pentest.blog/windows-privilege-escalation-methods-for-pentesters/
+    https://github.com/frizb/Windows-Privilege-Escalation
+    http://it-ovid.blogspot.com/2012/02/windows-privilege-escalation.html
+    https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Windows%20-%20Privilege%20Escalation.md#antivirus--detections
