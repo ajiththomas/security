@@ -118,5 +118,7 @@ Backdoor
 The original source code for LAPS can be found at https://github.com/GreyCorbel/admpwd , therefore it's possible to put a backdoor in the code (inside the Get-AdmPwdPassword method in Main/AdmPwd.PS/Main.cs for example) that will somehow exfiltrate new passwords or store them somewhere.
 Then, just compile the new AdmPwd.PS.dll and upload it to the machine in C:\Tools\admpwd\Main\AdmPwd.PS\bin\Debug\AdmPwd.PS.dll (and change the modification time).
 
+REFERENCES:
+https://4sysops.com/archives/introduction-to-microsoft-laps-local-administrator-password-solution/
 
 
