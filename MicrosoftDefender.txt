@@ -1,0 +1,32 @@
+Defender
+
+Microsoft Defender is an Antivirus that is available in Windows 10 and Windows 11, and in versions of Windows Server. It blocks common pentesting tools such as WinPEAS. However, there are ways to bypass these protections.
+Check
+
+To check the status of Defender you can execute the PS cmdlet Get-MpComputerStatus (check the value of RealTimeProtectionEnabled to know if it's active):
+
+PS C:\> Get-MpComputerStatus
+
+[...]
+AntispywareEnabled              : True
+AntispywareSignatureAge         : 1
+AntispywareSignatureLastUpdated : 12/6/2021 10:14:23 AM
+AntispywareSignatureVersion     : 1.323.392.0
+AntivirusEnabled                : True
+[...]
+NISEnabled                      : False
+NISEngineVersion                : 0.0.0.0
+[...]
+RealTimeProtectionEnabled       : True
+RealTimeScanDirection           : 0
+PSComputerName                  :
+
+To enumerate it you could also run:
+bash
+
+WMIC /Node:localhost /Namespace:\\root\SecurityCenter2 Path AntiVirusProduct Get displayName /Format:List
+wmic /namespace:\\root\securitycenter2 path antivirusproduct
+sc query windefend
+
+#Delete all rules of Defender (useful for machines without internet access)
+"C:\Program Files\Windows Defender\MpCmdRun.exe" -RemoveDefinitions -All
