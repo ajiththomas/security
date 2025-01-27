@@ -1,0 +1,31 @@
+Encrypted File System (EFS)
+
+EFS secures files through encryption, utilizing a symmetric key known as the File Encryption Key (FEK). This key is encrypted with the user's public key and stored within the encrypted file's $EFS alternative data stream. When decryption is needed, the corresponding private key of the user's digital certificate is used to decrypt the FEK from the $EFS stream. More details can be found here.
+
+Decryption scenarios without user initiation include:
+
+    When files or folders are moved to a non-EFS file system, like FAT32, they are automatically decrypted.
+    Encrypted files sent over the network via SMB/CIFS protocol are decrypted prior to transmission.
+
+This encryption method allows transparent access to encrypted files for the owner. However, simply changing the owner's password and logging in will not permit decryption.
+
+Key Takeaways:
+
+    EFS uses a symmetric FEK, encrypted with the user's public key.
+    Decryption employs the user's private key to access the FEK.
+    Automatic decryption occurs under specific conditions, like copying to FAT32 or network transmission.
+    Encrypted files are accessible to the owner without additional steps.
+
+Check EFS info
+
+Check if a user has used this service checking if this path exists:C:\users\<username>\appdata\roaming\Microsoft\Protect
+
+Check who has access to the file using cipher /c <file>
+You can also use cipher /e and cipher /d inside a folder to encrypt and decrypt all the files
+Decrypting EFS files
+Being Authority System
+
+This way requires the victim user to be running a process inside the host. If that is the case, using a meterpreter sessions you can impersonate the token of the process of the user (impersonate_token from incognito). Or you could just migrate to process of the user.
+
+How to Decrypt EFS files:
+https://github.com/gentilkiwi/mimikatz/wiki/howto-~-decrypt-EFS-files
