@@ -24,3 +24,59 @@ xcopy /E /I /H /Y %systemroot%\System32\GroupPolicy C:\Users\Public\GPO_Backup\
 //restore group policy
 xcopy /E /I /H /Y C:\Users\Public\GPO_Backup\ %systemroot%\System32\GroupPolicy
 gpupdate /force
+
+//Basic System Info
+systeminfo > C:\Users\Public\SystemInfo.txt
+
+//Detailed System Info
+wmic computersystem get model,name,manufacturer,systemtype > C:\Users\Public\HardwareInfo.txt
+
+//Installed programs
+wmic product get name,version > C:\Users\Public\Installed_Programs.txt
+
+//Installed Drivers
+driverquery /v > C:\Users\Public\Drivers.txt
+
+//running process and services
+tasklist /v > C:\Users\Public\Running_Processes.txt
+
+//export services information
+sc query state= all > C:\Users\Public\Services.txt
+//list startup programs
+wmic startup get caption,command > C:\Users\Public\Startup_Programs.txt
+
+//list network adapters
+ipconfig /all > C:\Users\Public\Network_Adapters.txt
+//list network connections
+netstat -ano > C:\Users\Public\Network_Connections.txt
+
+//list firewall rules
+netsh advfirewall firewall show rule name=all > C:\Users\Public\Firewall_Rules.txt
+
+//list local user accounts
+net user > C:\Users\Public\Local_Users.txt
+
+//lists user groups and members
+net localgroup > C:\Users\Public\Local_Groups.txt
+net localgroup Administrators > C:\Users\Public\Admins.txt
+
+//Export windows event logswevtutil qe Security /f:text > C:\Users\Public\Security_Logs.txt
+wevtutil qe System /f:text > C:\Users\Public\System_Logs.txt
+wevtutil qe Application /f:text > C:\Users\Public\Application_Logs.txt
+
+
+//export defender policies
+reg export "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" C:\Users\Public\Defender_Policies.reg /y
+
+//export windows update settings
+reg export "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" C:\Users\Public\Windows_Update.reg /y
+
+//export user run programs
+reg export "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" C:\Users\Public\UserStartup.reg /y
+
+/export scheduled tasks
+schtasks /query /fo LIST > C:\Users\Public\Scheduled_Tasks.txt
+
+
+
+
