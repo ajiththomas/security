@@ -1,0 +1,26 @@
+//export the security policy settings
+secedit /export /cfg C:\Users\Public\secpol.cfg
+
+//view with notepad
+notepad C:\Users\Public\secpol.cfg
+
+//backup policy
+secedit /configure /db %windir%\security\local.sdb /cfg C:\Users\Public\secpol.cfg /overwrite
+
+//gpresult to text file
+gpresult /v > C:\Users\Public\GPO_Report.txt
+
+//gpresult to html
+gpresult /h C:\Users\Public\GPO_Report.html
+start C:\Users\Public\GPO_Report.html
+
+//Export Group Policy Object (GPO) Settings from the Registry
+reg export "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies" C:\Users\Public\GPO_Policies.reg /y
+//user specific policies
+reg export "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies" C:\Users\Public\GPO_User_Policies.reg /y
+
+//backup group policy
+xcopy /E /I /H /Y %systemroot%\System32\GroupPolicy C:\Users\Public\GPO_Backup\
+//restore group policy
+xcopy /E /I /H /Y C:\Users\Public\GPO_Backup\ %systemroot%\System32\GroupPolicy
+gpupdate /force
